@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trazip RateCompare - 9 B2B Travel Agency Hotel Comparison</title>
+  <meta name="description" content="Compare hotel room rates across 9 major B2B travel agencies: Webbeds, Tale Travel, RateHawk, TBO, PTC, Go Global, Arbitrip, Expedia TAAP, and Innstant Travel.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css?v=20260811-v6">
+</head>
+<body>
+  <div id="app">
+    <!-- Header Navbar -->
+    <header class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">Trazip <span class="brand-badge">RateCompare 9x</span></span>
+            <span class="brand-sub">B2B Hotel Agency Comparison Engine</span>
+          </div>
+        </div>
+
+        <div class="nav-controls">
+          <div class="status-indicator">
+            <span class="pulse-dot"></span>
+            <span class="status-text"><strong id="connectedAgenciesCount">9</strong> B2B Agencies Live</span>
+          </div>
+
+          <div class="currency-selector">
+            <label for="currencySelect">Currency:</label>
+            <select id="currencySelect" aria-label="Select Currency">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="ILS" selected>ILS (₪)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+
+          <!-- Supplier API & Login Settings Button -->
+          <button id="btnOpenApiSettings" class="btn btn-outline" style="border-color: #10b981; color: #34d399;">
+            ⚙️ Supplier API & Logins
+          </button>
+
+          <button id="btnToggleDebug" class="btn btn-outline" style="border-color: #f59e0b; color: #fbbf24;">
+            🐞 Debug Console
+          </button>
+
+          <a href="test.html" target="_blank" class="btn btn-outline" style="border-color: #3b82f6; color: #60a5fa;">
+            🧪 Test Suite
+          </a>
+
+          <button id="btnOpenAddModal" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Custom Quote
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Search Hero -->
+    <section class="hero-section">
+      <div class="hero-bg-overlay"></div>
+      <div class="container hero-content">
+        <h1 class="hero-title">Compare 9 B2B Travel Suppliers in 1 Click</h1>
+        <p class="hero-subtitle">Instantly compare room rates from <strong>Webbeds, Tale Travel, RateHawk, TBO, PTC, Go Global, Arbitrip, Expedia TAAP, & Innstant Travel</strong></p>
+
+        <!-- Search Bar Form -->
+        <div class="search-card">
+          <div class="search-grid">
+            
+            <!-- Hotel Name Input -->
+            <div class="search-field hotel-field">
+              <label for="hotelSearchInput">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"></path>
+                  <polyline points="1 21 23 21"></polyline>
+                  <path d="M9 7h1"></path><path d="M9 11h1"></path><path d="M9 15h1"></path>
+                  <path d="M14 7h1"></path><path d="M14 11h1"></path><path d="M14 15h1"></path>
+                </svg>
+                Hotel Name (Global Search)
+              </label>
+              <div class="input-with-autocomplete">
+                <input type="text" id="hotelSearchInput" placeholder="Type verified hotel name (e.g. The Norman, Dan Eilat, Hilton Paris)..." autocomplete="off">
+                <div id="hotelAutocompleteList" class="autocomplete-dropdown hidden"></div>
+              </div>
+
+              <!-- Quick Autocomplete Test Tags -->
+              <div style="margin-top: 8px; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span>Try verified hotels:</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('The Norman')">The Norman</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('Paris')">Paris</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('Dubai')">Dubai</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('Dan Eilat')">Dan Eilat</button>
+              </div>
+            </div>
+
+            <!-- Room Type Selection -->
+            <div class="search-field">
+              <label for="roomTypeSelect">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 4v16"></path><path d="M2 8h20v12H2z"></path>
+                  <path d="M6 8v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Room Type
+              </label>
+              <select id="roomTypeSelect" aria-label="Select Room Type">
+                <option value="ALL">All Room Types</option>
+                <option value="Standard Room">Standard Room</option>
+                <option value="Deluxe Room">Deluxe Room</option>
+                <option value="Superior Room">Superior Room</option>
+                <option value="Executive Suite">Executive Suite</option>
+                <option value="Junior Suite">Junior Suite</option>
+                <option value="Family Room">Family Room</option>
+              </select>
+            </div>
+
+            <!-- Dates Selection -->
+            <div class="search-field dates-field">
+              <label>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Dates & Duration (<span id="nightsCountLabel">5 nights</span>)
+              </label>
+              <div class="dates-inputs">
+                <input type="date" id="checkInDate" aria-label="Check-in Date">
+                <span class="date-sep">→</span>
+                <input type="date" id="checkOutDate" aria-label="Check-out Date">
+              </div>
+            </div>
+
+            <!-- Guests & Rooms Selector -->
+            <div class="search-field guests-field">
+              <label>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Guests & Rooms
+              </label>
+              <button type="button" id="btnGuestsPopover" class="btn-guests-trigger">
+                <span id="guestsSummaryText">2 Adults, 0 Kids · 1 Room</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+
+              <!-- Guests Popover Box -->
+              <div id="guestsPopoverBox" class="guests-popover hidden">
+                <div class="popover-row">
+                  <div class="popover-info">
+                    <strong>Adults</strong>
+                    <small>Age 18+</small>
+                  </div>
+                  <div class="popover-counter">
+                    <button type="button" id="btnAdultsDec" class="counter-btn">-</button>
+                    <span id="adultsVal">2</span>
+                    <button type="button" id="btnAdultsInc" class="counter-btn">+</button>
+                  </div>
+                </div>
+
+                <div class="popover-row">
+                  <div class="popover-info">
+                    <strong>Children</strong>
+                    <small>Age 0-17</small>
+                  </div>
+                  <div class="popover-counter">
+                    <button type="button" id="btnKidsDec" class="counter-btn">-</button>
+                    <span id="kidsVal">0</span>
+                    <button type="button" id="btnKidsInc" class="counter-btn">+</button>
+                  </div>
+                </div>
+
+                <div class="popover-row">
+                  <div class="popover-info">
+                    <strong>Rooms</strong>
+                    <small>Total rooms requested</small>
+                  </div>
+                  <div class="popover-counter">
+                    <button type="button" id="btnRoomsDec" class="counter-btn">-</button>
+                    <span id="roomsVal">1</span>
+                    <button type="button" id="btnRoomsInc" class="counter-btn">+</button>
+                  </div>
+                </div>
+
+                <div class="popover-footer">
+                  <button type="button" id="btnDoneGuests" class="btn btn-primary btn-sm">Done</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="search-actions">
+            <button id="btnSearch" class="btn btn-primary btn-search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Compare 9 Supplier Rates
+            </button>
+            <button id="btnResetFilters" class="btn btn-ghost">Reset Filters</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Body -->
+    <main class="container main-content">
+      
+      <!-- Live Aggregator API Progress Monitor -->
+      <section id="aggregatorProgressBox" class="aggregator-progress-card hidden">
+        <div class="progress-header">
+          <div class="progress-title">
+            <span class="spinner-icon">⚡</span>
+            <span>Fetching Live B2B API Rates across 9 Suppliers...</span>
+          </div>
+          <span id="aggregatorPercentText" class="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="aggregatorProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+        <div id="supplierApiStatusGrid" class="supplier-api-status-grid">
+          <!-- Rendered dynamically during live fetch with official logos -->
+        </div>
+      </section>
+
+      <!-- Supplier Filter Chips -->
+      <section class="supplier-bar-wrapper">
+        <div class="section-label">
+          <span>Filter B2B Travel Agencies (9 Active):</span>
+          <div class="agency-shortcuts">
+            <button id="btnSelectAllAgencies" class="link-btn">Select All (9)</button>
+            <span class="dot-sep">•</span>
+            <button id="btnClearAgencies" class="link-btn">Clear All</button>
+          </div>
+        </div>
+        <div id="agencyChipsContainer" class="agency-chips-grid">
+          <!-- Rendered dynamically by app.js with live brand logos -->
+        </div>
+      </section>
+
+      <!-- Results Header / Controls Toolbar -->
+      <section class="results-header-bar">
+        <div class="results-count-title">
+          <h2 id="resultsCountText">Showing Hotels & Rate Quotes</h2>
+          <span id="resultsSummaryBadge" class="badge badge-info">9 Agencies Active</span>
+        </div>
+
+        <div class="controls-right">
+          <!-- Breakfast Filter Dropdown -->
+          <div class="filter-dropdown-group">
+            <label for="breakfastSelect">Meal Plan:</label>
+            <select id="breakfastSelect" aria-label="Filter by Breakfast">
+              <option value="ALL">All Meal Plans</option>
+              <option value="BREAKFAST_ONLY">☕ Breakfast Included Only</option>
+              <option value="ROOM_ONLY">🚫 Room Only</option>
+            </select>
+          </div>
+
+          <!-- Cancellation Policy Filter Dropdown -->
+          <div class="filter-dropdown-group">
+            <label for="cancellationSelect">Cancellation:</label>
+            <select id="cancellationSelect" aria-label="Filter by Cancellation Policy">
+              <option value="ALL">All Policies</option>
+              <option value="FREE_CANCEL_ONLY">🟢 Free Cancellation Only</option>
+              <option value="NON_REFUNDABLE_ONLY">🔴 Non-Refundable Only</option>
+            </select>
+          </div>
+
+          <!-- Sort Selector -->
+          <div class="sort-selector">
+            <label for="sortSelect">Sort By:</label>
+            <select id="sortSelect" aria-label="Sort Results">
+              <option value="LOWEST_PRICE">Lowest Price First</option>
+              <option value="HIGHEST_SAVINGS">Highest Savings vs Avg</option>
+              <option value="FREE_CANCEL">Free Cancellation First</option>
+              <option value="BREAKFAST">Breakfast Included First</option>
+              <option value="HOTEL_NAME">Hotel Name (A-Z)</option>
+            </select>
+          </div>
+
+          <!-- View Mode Toggles -->
+          <div class="view-mode-toggle">
+            <button id="btnViewCards" class="view-btn active" title="Card View" aria-label="Card View">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              Grid Cards
+            </button>
+            <button id="btnViewTable" class="view-btn" title="Matrix Table View" aria-label="Matrix Table View">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3h18v18H3z"></path>
+                <path d="M3 9h18"></path>
+                <path d="M3 15h18"></path>
+                <path d="M9 3v18"></path>
+                <path d="M15 3v18"></path>
+              </svg>
+              Table Matrix
+            </button>
+            <button id="btnViewLeaderboard" class="view-btn" title="Supplier Leaderboard" aria-label="Supplier Leaderboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Agency Stats
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Results Display Container -->
+      <section id="resultsContainer" class="results-container">
+        <!-- Rendered dynamically: Cards / Table / Leaderboard -->
+      </section>
+
+      <!-- On-Screen Debug Console Box -->
+      <section id="debugConsoleBox" class="debug-console-container" style="margin-top: 40px; background: #0f172a; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="color: #fbbf24; margin: 0;">🐞 Live Debug Console & Execution Logs</h4>
+          <button id="btnClearDebugLog" class="btn btn-ghost btn-sm" style="color: #94a3b8;">Clear Log</button>
+        </div>
+        <div id="debugLogOutput" style="background: #090d16; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; height: 180px; overflow-y: auto;"></div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer-content">
+        <p>© 2026 Trazip RateCompare. High-Performance B2B Hotel Aggregation platform.</p>
+        <p class="agency-footer-list">Integrated Agencies (9): <strong>Webbeds • Tale Travel • RateHawk • TBO Holidays • PTC • Go Global Travel • Arbitrip • Expedia TAAP • Innstant Travel</strong></p>
+      </div>
+    </footer>
+
+    <!-- Supplier API Credentials & Logins Settings Modal -->
+    <div id="apiSettingsModal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width: 840px;">
+        <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);">
+          <div>
+            <h3 style="color: #34d399; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>⚙️</span> Supplier API Keys & Portal Credentials
+            </h3>
+            <small style="color: #94a3b8;">Enter your trade credentials for each of the 9 B2B wholesale suppliers. Data is stored securely in your local browser vault.</small>
+          </div>
+          <button id="btnCloseApiSettingsModal" class="close-btn">&times;</button>
+        </div>
+
+        <form id="apiSettingsForm" class="modal-body" style="max-height: 520px; overflow-y: auto; padding: 20px;">
+          
+          <div class="api-suppliers-grid">
+            
+            <!-- 1. Webbeds -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-webbeds);">
+                  <img src="https://www.google.com/s2/favicons?domain=webbeds.com&sz=128" class="agency-logo-icon sm" alt="Webbeds">
+                  Webbeds B2B (DOTW / Sunhotels)
+                </span>
+                <span class="api-badge" id="badge_webbeds">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Client Code / Org ID</label>
+                  <input type="text" id="cfg_webbeds_client" placeholder="e.g. WB-CLIENT-8921">
+                </div>
+                <div class="form-group">
+                  <label>API Key / Bearer Secret</label>
+                  <input type="password" id="cfg_webbeds_key" placeholder="Enter Webbeds API Key">
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. RateHawk -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-ratehawk);">
+                  <img src="https://www.google.com/s2/favicons?domain=ratehawk.com&sz=128" class="agency-logo-icon sm" alt="RateHawk">
+                  RateHawk (Emerging Travel Group)
+                </span>
+                <span class="api-badge" id="badge_ratehawk">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Key ID</label>
+                  <input type="text" id="cfg_ratehawk_id" placeholder="e.g. 7481">
+                </div>
+                <div class="form-group">
+                  <label>API Key (Private Token)</label>
+                  <input type="password" id="cfg_ratehawk_key" placeholder="Enter RateHawk API Key">
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. TBO Holidays -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-tbo);">
+                  <img src="https://www.google.com/s2/favicons?domain=tboholidays.com&sz=128" class="agency-logo-icon sm" alt="TBO">
+                  TBO Holidays (Air & Hotels)
+                </span>
+                <span class="api-badge" id="badge_tbo">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Agency Username / Client ID</label>
+                  <input type="text" id="cfg_tbo_user" placeholder="e.g. TBO_AGENCY_TL">
+                </div>
+                <div class="form-group">
+                  <label>Password / Auth Token</label>
+                  <input type="password" id="cfg_tbo_pass" placeholder="Enter TBO Password">
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Arbitrip -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-arbitrip);">
+                  <img src="https://www.google.com/s2/favicons?domain=arbitrip.com&sz=128" class="agency-logo-icon sm" alt="Arbitrip">
+                  Arbitrip Smart B2B
+                </span>
+                <span class="api-badge" id="badge_arbitrip">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Partner Account ID</label>
+                  <input type="text" id="cfg_arbitrip_id" placeholder="e.g. ARB-99120">
+                </div>
+                <div class="form-group">
+                  <label>API Secret Token</label>
+                  <input type="password" id="cfg_arbitrip_key" placeholder="Enter Arbitrip API Token">
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Go Global Travel -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-goglobal);">
+                  <img src="https://www.google.com/s2/favicons?domain=goglobal.travel&sz=128" class="agency-logo-icon sm" alt="Go Global">
+                  Go Global Travel (XML Gateway)
+                </span>
+                <span class="api-badge" id="badge_goglobal">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Agency Code</label>
+                  <input type="text" id="cfg_goglobal_agency" placeholder="e.g. GG-4029">
+                </div>
+                <div class="form-group">
+                  <label>XML Password</label>
+                  <input type="password" id="cfg_goglobal_pass" placeholder="Enter Go Global Password">
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. Expedia TAAP -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-expedia);">
+                  <img src="https://www.google.com/s2/favicons?domain=expedia.com&sz=128" class="agency-logo-icon sm" alt="Expedia TAAP">
+                  Expedia TAAP (EPS Partner API)
+                </span>
+                <span class="api-badge" id="badge_expedia">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>TAAP Partner API Key</label>
+                  <input type="text" id="cfg_expedia_key" placeholder="Enter EPS Rapid API Key">
+                </div>
+                <div class="form-group">
+                  <label>Shared Secret (SHA-512)</label>
+                  <input type="password" id="cfg_expedia_secret" placeholder="Enter Shared Secret">
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. Innstant Travel -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-innstant);">
+                  <img src="https://www.google.com/s2/favicons?domain=innstant.travel&sz=128" class="agency-logo-icon sm" alt="Innstant">
+                  Innstant Travel B2B (innstant.travel)
+                </span>
+                <span class="api-badge" id="badge_innstant">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Agency Partner ID / Username</label>
+                  <input type="text" id="cfg_innstant_id" placeholder="e.g. INNST-5012">
+                </div>
+                <div class="form-group">
+                  <label>API Key / Connector Token</label>
+                  <input type="password" id="cfg_innstant_key" placeholder="Enter Innstant API Key">
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. Tale Travel -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-tale);">
+                  <img src="https://www.google.com/s2/favicons?domain=taletravel.com&sz=128" class="agency-logo-icon sm" alt="Tale Travel">
+                  Tale Travel Ltd
+                </span>
+                <span class="api-badge" id="badge_tale">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Agent Portal Username</label>
+                  <input type="text" id="cfg_tale_user" placeholder="Enter Tale Travel Username">
+                </div>
+                <div class="form-group">
+                  <label>Portal Password</label>
+                  <input type="password" id="cfg_tale_pass" placeholder="Enter Password">
+                </div>
+              </div>
+            </div>
+
+            <!-- 9. PTC Travel -->
+            <div class="api-supplier-box">
+              <div class="api-box-header">
+                <span class="api-box-title" style="color: var(--color-ptc);">
+                  <img src="https://www.google.com/s2/favicons?domain=ptc.co.il&sz=128" class="agency-logo-icon sm" alt="PTC">
+                  PTC Travel
+                </span>
+                <span class="api-badge" id="badge_ptc">Demo Mode</span>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Agency User ID</label>
+                  <input type="text" id="cfg_ptc_user" placeholder="Enter PTC User ID">
+                </div>
+                <div class="form-group">
+                  <label>Password</label>
+                  <input type="password" id="cfg_ptc_pass" placeholder="Enter Password">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="btnClearAllApiSettings" class="btn btn-ghost btn-sm" style="color: var(--rose-text);">Clear All Saved Keys</button>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="btnCancelApiSettings" class="btn btn-outline btn-sm">Cancel</button>
+              <button type="submit" class="btn btn-primary btn-sm">💾 Save & Apply Credentials</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add Custom Quote Modal -->
+    <div id="addModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Add Custom Hotel Rate Quote</h3>
+          <button id="btnCloseAddModal" class="close-btn">&times;</button>
+        </div>
+        <form id="addQuoteForm" class="modal-body">
+          <div class="form-group">
+            <label for="modalHotelName">Hotel Name</label>
+            <input type="text" id="modalHotelName" placeholder="e.g. Royal Beach Tel Aviv" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modalLocation">Location</label>
+              <input type="text" id="modalLocation" placeholder="Tel Aviv, Israel" default="Tel Aviv">
+            </div>
+            <div class="form-group">
+              <label for="modalRoomType">Room Type</label>
+              <select id="modalRoomType">
+                <option value="Standard Room">Standard Room</option>
+                <option value="Deluxe Room">Deluxe Room</option>
+                <option value="Executive Suite">Executive Suite</option>
+                <option value="Junior Suite">Junior Suite</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Select Agency & Per-Night Rate (ILS ₪)</label>
+            <div class="modal-agency-inputs">
+              <div class="agency-input-item">
+                <span>Webbeds</span>
+                <input type="number" id="rate_webbeds" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>Tale Travel</span>
+                <input type="number" id="rate_tale" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>RateHawk</span>
+                <input type="number" id="rate_ratehawk" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>TBO</span>
+                <input type="number" id="rate_tbo" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>PTC</span>
+                <input type="number" id="rate_ptc" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>Go Global</span>
+                <input type="number" id="rate_goglobal" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>Arbitrip</span>
+                <input type="number" id="rate_arbitrip" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>Expedia TAAP</span>
+                <input type="number" id="rate_expedia" placeholder="Price ₪">
+              </div>
+              <div class="agency-input-item">
+                <span>Innstant</span>
+                <input type="number" id="rate_innstant" placeholder="Price ₪">
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelAddModal" class="btn btn-ghost">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Quote & Compare</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Raw Supplier API Payload Inspector Modal -->
+    <div id="jsonInspectorModal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width: 720px;">
+        <div class="modal-header">
+          <div>
+            <h3 id="jsonModalSupplierName" style="color: #60a5fa;">Supplier API Response Inspector</h3>
+            <small style="color: #94a3b8;" id="jsonModalRefCode">Provider Ref: RH-8839201-X</small>
+          </div>
+          <button id="btnCloseJsonModal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="background: #090d16; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; font-family: monospace; font-size: 0.82rem; color: #34d399; max-height: 380px; overflow-y: auto;">
+            <pre id="jsonModalPreContent" style="margin: 0; white-space: pre-wrap; word-break: break-all;"></pre>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnCopyJsonPayload" class="btn btn-outline btn-sm">Copy Raw JSON</button>
+          <button id="btnCloseJsonModalBottom" class="btn btn-primary btn-sm">Close Inspector</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Redirection & Supplier Handoff Modal -->
+    <div id="bookingModal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width: 580px; text-align: left;">
+        <div class="modal-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span id="bookingModalAgencyIcon" style="display: flex; align-items: center;"></span>
+            <div>
+              <h3 id="bookingModalAgencyName" style="color: var(--text-primary); margin: 0;">Connecting to Innstant B2B Portal</h3>
+              <small id="bookingModalRefCode" style="color: var(--emerald-text); font-family: monospace;">Provider Booking Ref: INNSTANT-882910-X</small>
+            </div>
+          </div>
+          <button id="btnCloseBookingModal" class="close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="background: rgba(11, 15, 25, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <h4 id="bookingModalHotel" style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">The Norman Tel Aviv</h4>
+                <p id="bookingModalRoom" style="font-size: 0.85rem; color: var(--accent-primary);">Deluxe Room • 1 King Bed</p>
+              </div>
+              <div style="text-align: right;">
+                <div id="bookingModalTotalRate" style="font-size: 1.4rem; font-weight: 800; font-family: var(--font-mono); color: var(--emerald-text);">₪5,400</div>
+                <small style="color: var(--text-muted);">Total for stay</small>
+              </div>
+            </div>
+            <div style="display: flex; gap: 12px; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+              <span id="bookingModalDates">📅 Aug 21 - Aug 26 (5 Nights)</span>
+              <span>•</span>
+              <span id="bookingModalGuests">👥 2 Adults · 1 Room</span>
+              <span>•</span>
+              <span id="bookingModalBoard">☕ Breakfast Included</span>
+            </div>
+          </div>
+
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <div class="spinner-icon" style="font-size: 1.3rem;">⚡</div>
+            <div style="flex: 1;">
+              <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);" id="bookingCountdownText">Connecting to Innstant Travel B2B Portal...</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Direct Deep Link: <span id="bookingModalPortalUrl" style="color: var(--accent-primary); font-family: monospace;">https://www.innstant.travel</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+          <button id="btnCancelBookingModal" class="btn btn-ghost btn-sm">Stay on Trazip</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="btnCopyBookingRef" class="btn btn-outline btn-sm">Copy Ref Token</button>
+            <a id="btnProceedDirectLink" href="https://www.innstant.travel" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span>Open Portal Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Confirmation Toast / Fallback -->
+    <div id="bookingToast" class="toast hidden">
+      <div class="toast-icon">✓</div>
+      <div class="toast-body">
+        <strong id="toastAgencyName">Innstant</strong>
+        <p id="toastMessage">Opening agency portal...</p>
+      </div>
+      <button id="btnCloseToast" class="toast-close">&times;</button>
+    </div>
+
+  </div>
+
+  <!-- Cache-busting script tags to force fresh load -->
+  <script src="data.js?v=20260811-v6"></script>
+  <script src="app.js?v=20260811-v6"></script>
+  <script>
+    function triggerSearch(text) {
+      const input = document.getElementById('hotelSearchInput');
+      if (input) {
+        input.value = text;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        document.getElementById('btnSearch').click();
+      }
+    }
+  </script>
+</body>
+</html>
