@@ -1315,3 +1315,193 @@ a {
   margin-top: 8px;
   font-size: 0.8rem;
 }
+
+/* ==========================================================================
+   Accountability & Real Rate Enforcement Styles
+   ========================================================================== */
+
+.agency-quote-card.is-unconfigured {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px dashed rgba(244, 63, 94, 0.4);
+  opacity: 0.72;
+  filter: grayscale(0.35);
+  transition: opacity 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
+}
+
+.agency-quote-card.is-unconfigured:hover {
+  opacity: 0.95;
+  filter: grayscale(0);
+  border-color: rgba(244, 63, 94, 0.75);
+}
+
+.unconfigured-disclaimer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.unconfigured-disclaimer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f43f5e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.unconfigured-disclaimer-sub {
+  font-size: 0.72rem;
+  color: #fda4af;
+  line-height: 1.3;
+}
+
+.unconfigured-price-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+
+.btn-configure-agency {
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  color: #fb7185;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-configure-agency:hover {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: #f43f5e;
+  color: white;
+}
+
+/* Agency Chip Status Badges */
+.agency-chip.is-unconfigured {
+  border-color: rgba(244, 63, 94, 0.25);
+  opacity: 0.75;
+}
+
+.agency-chip.is-unconfigured:hover {
+  opacity: 1;
+  border-color: rgba(244, 63, 94, 0.5);
+}
+
+.chip-status-tag {
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip-status-tag.unconfigured {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.chip-status-tag.verified {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.chip-status-tag.alert {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Verified Session Badge */
+.session-verified-tag {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* Top Accountability Banner */
+.accountability-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: linear-gradient(90deg, rgba(244, 63, 94, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.accountability-banner.is-warning {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.accountability-banner.is-success {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.banner-icon {
+  font-size: 1.3rem;
+}
+
+.banner-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.banner-title {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.banner-sub {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
