@@ -105,7 +105,7 @@ const AGENCIES = [
     fullTitle: 'Innstant Travel B2B',
     domain: 'innstant.travel',
     logoUrl: 'https://www.google.com/s2/favicons?domain=innstant.travel&sz=128',
-    portalUrl: 'https://www.innstant.travel',
+    portalUrl: 'https://b2b.innstant.travel',
     color: '#10b981',
     icon: '🚀',
     rank: 9,

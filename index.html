@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=20260811-v7">
+  <link rel="stylesheet" href="styles.css?v=20260811-v8">
 </head>
 <body>
   <div id="app">
@@ -761,7 +761,7 @@
             <div class="spinner-icon" style="font-size: 1.3rem;">⚡</div>
             <div style="flex: 1;">
               <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);" id="bookingCountdownText">Connecting to Innstant Travel B2B Portal...</div>
-              <div style="font-size: 0.78rem; color: var(--text-secondary);">Direct Deep Link: <span id="bookingModalPortalUrl" style="color: var(--accent-primary); font-family: monospace;">https://www.innstant.travel</span></div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Direct Deep Link: <span id="bookingModalPortalUrl" style="color: var(--accent-primary); font-family: monospace;">https://b2b.innstant.travel</span></div>
             </div>
           </div>
         </div>
@@ -770,7 +770,7 @@
           <button id="btnCancelBookingModal" class="btn btn-ghost btn-sm">Stay on Trazip</button>
           <div style="display: flex; gap: 8px;">
             <button id="btnCopyBookingRef" class="btn btn-outline btn-sm">Copy Ref Token</button>
-            <a id="btnProceedDirectLink" href="https://www.innstant.travel" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <a id="btnProceedDirectLink" href="https://b2b.innstant.travel" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
               <span>Open Portal Now</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </a>
@@ -792,8 +792,8 @@
   </div>
 
   <!-- Cache-busting script tags to force fresh load -->
-  <script src="data.js?v=20260811-v7"></script>
-  <script src="app.js?v=20260811-v7"></script>
+  <script src="data.js?v=20260811-v8"></script>
+  <script src="app.js?v=20260811-v8"></script>
   <script>
     function triggerSearch(text) {
       const input = document.getElementById('hotelSearchInput');

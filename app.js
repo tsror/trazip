@@ -700,7 +700,7 @@
         case 'tbo':
           return `https://www.tboholidays.com/HotelListing.aspx?CityName=${loc}&CheckInDate=${inDate}&CheckOutDate=${outDate}`;
         case 'innstant':
-          return `https://www.innstant.travel/search?hotel=${hName}&checkin=${inDate}&checkout=${outDate}&rooms=${rooms}&adults=${adults}`;
+          return `https://b2b.innstant.travel/search?hotel=${hName}&checkin=${inDate}&checkout=${outDate}&rooms=${rooms}&adults=${adults}`;
         case 'arbitrip':
           return `https://www.arbitrip.com/hotels/search?destination=${hName}&checkin=${inDate}&checkout=${outDate}`;
         case 'goglobal':
@@ -1803,7 +1803,7 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const agencyId = btn.getAttribute('data-agency-id');
-        const agency = AGENCIES.find(a => a.id === agencyId) || { name: 'Innstant', icon: '🚀', portalUrl: 'https://www.innstant.travel', logoUrl: 'https://www.google.com/s2/favicons?domain=innstant.travel&sz=128' };
+        const agency = AGENCIES.find(a => a.id === agencyId) || { name: 'Innstant', icon: '🚀', portalUrl: 'https://b2b.innstant.travel', logoUrl: 'https://www.google.com/s2/favicons?domain=innstant.travel&sz=128' };
         const agencyName = btn.getAttribute('data-agency-name') || agency.name;
         const hotel = btn.getAttribute('data-hotel') || 'Selected Hotel';
         const room = btn.getAttribute('data-room') || 'Standard Room';
