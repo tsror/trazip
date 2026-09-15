@@ -29,74 +29,14 @@
       kids: 0,
       rooms: 1,
       nights: 5
-    }
+    },
+    visibleLimit: 24,
+    destinations: []
   };
 
-  // Comprehensive Global Hotel Database (300+ Verified Hotels & Destinations)
-  const GLOBAL_HOTEL_DICTIONARY = [
-    // ISRAEL - TEL AVIV & CENTER
-    { name: 'The Norman Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1250 },
-    { name: 'Dan Panorama Tel Aviv', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 780 },
-    { name: 'The David Kempinski Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 1550 },
-    { name: 'Royal Beach Tel Aviv (Isrotel)', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1380 },
-    { name: 'Hilton Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 1450 },
-    { name: 'Carlton Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1200 },
-    { name: 'The Setai Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 1600 },
-    { name: 'Sheraton Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 1300 },
-    { name: 'InterContinental David Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1400 },
-    { name: 'Crowne Plaza Tel Aviv Beach', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 890 },
-    { name: 'Dan Tel Aviv Hotel', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1350 },
-    { name: 'Herods Tel Aviv', loc: 'Tel Aviv, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 1150 },
-    { name: 'Leonardo Plaza Tel Aviv', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 850 },
-    { name: 'Leonardo City Tower Tel Aviv', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 790 },
-    { name: 'Brown TLV Urban Hotel', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 720 },
-    { name: 'Brown Lighthouse Tel Aviv', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 740 },
-    { name: 'Brown Seaside Tel Aviv', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 710 },
-    { name: 'Poli House Tel Aviv (Brown)', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 760 },
-    { name: 'Market House Hotel (Atlas)', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 690 },
-    { name: 'Shalom Hotel & Relax (Atlas)', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 680 },
-    { name: '65 Hotel Tel Aviv (Atlas)', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 730 },
-    { name: 'Port Tower Hotel (Isrotel)', loc: 'Tel Aviv, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 820 },
-    { name: 'Ritz-Carlton Herzliya', loc: 'Herzliya, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 1800 },
-    { name: 'Dan Accadia Herzliya', loc: 'Herzliya, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1450 },
-
-    // ISRAEL - JERUSALEM
-    { name: 'Waldorf Astoria Jerusalem', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 1900 },
-    { name: 'King David Hotel Jerusalem', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1750 },
-    { name: 'Mamilla Hotel Jerusalem', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 1650 },
-    { name: 'David Citadel Hotel Jerusalem', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 1550 },
-    { name: 'Orient Jerusalem (Isrotel)', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1450 },
-    { name: 'Inbal Jerusalem Hotel', loc: 'Jerusalem, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 1350 },
-    { name: 'Dan Jerusalem Hotel', loc: 'Jerusalem, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 820 },
-    { name: 'Leonardo Plaza Jerusalem', loc: 'Jerusalem, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 880 },
-
-    // ISRAEL - EILAT & DEAD SEA
-    { name: 'Dan Eilat Hotel', loc: 'Eilat, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 1400 },
-    { name: 'Royal Beach Eilat (Isrotel)', loc: 'Eilat, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1480 },
-    { name: 'Herods Palace Eilat', loc: 'Eilat, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 1320 },
-    { name: 'Isrotel King Solomon Eilat', loc: 'Eilat, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1250 },
-    { name: 'Isrotel Agamim Eilat', loc: 'Eilat, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 980 },
-    { name: 'Leonardo Plaza Eilat', loc: 'Eilat, Israel', stars: 4, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 890 },
-    { name: 'Isrotel Dead Sea Hotel', loc: 'Dead Sea, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1200 },
-    { name: 'Milos Dead Sea (Herbert Samuel)', loc: 'Dead Sea, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 1350 },
-    { name: 'Herods Dead Sea Hotel', loc: 'Dead Sea, Israel', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 1180 },
-
-    // GLOBAL CITIES
-    { name: 'Hilton New York Times Square', loc: 'New York, USA', stars: 4, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 1100 },
-    { name: 'The Plaza New York', loc: 'New York, USA', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 2800 },
-    { name: 'The Ritz-Carlton New York', loc: 'New York, USA', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 3100 },
-    { name: 'Hôtel Plaza Athénée', loc: 'Paris, France', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 3200 },
-    { name: 'Le Meurice Paris', loc: 'Paris, France', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 2900 },
-    { name: 'The Ritz Paris', loc: 'Paris, France', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 3500 },
-    { name: 'Burj Al Arab Jumeirah', loc: 'Dubai, UAE', stars: 5, image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80', basePriceILS: 5400 },
-    { name: 'Atlantis The Royal Dubai', loc: 'Dubai, UAE', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 3800 },
-    { name: 'The Ritz London', loc: 'London, UK', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 3100 },
-    { name: 'Claridge\'s London', loc: 'London, UK', stars: 5, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80', basePriceILS: 2950 },
-    { name: 'Marina Bay Sands', loc: 'Singapore', stars: 5, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', basePriceILS: 2400 },
-    { name: 'Park Hyatt Tokyo', loc: 'Tokyo, Japan', stars: 5, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', basePriceILS: 2600 },
-    { name: 'Hotel Arts Barcelona', loc: 'Barcelona, Spain', stars: 5, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', basePriceILS: 1700 },
-    { name: 'Hotel Eden Rome', loc: 'Rome, Italy', stars: 5, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', basePriceILS: 2100 }
-  ];
+  // Dynamic Global Hotel Catalog & Destinations (Loaded asynchronously with automatic fallback)
+  let GLOBAL_HOTEL_CATALOG = [];
+  let GLOBAL_DESTINATIONS = [];
 
   const DOM = {};
 
@@ -783,22 +723,77 @@
     }
   };
 
-  function init() {
+  async function init() {
     cacheDOM();
-    logDebug('🚀 Initializing Trazip RateCompare in Accountability Mode...');
-    populateInitialHotelsFromDictionary();
+    logDebug('🚀 Initializing Trazip RateCompare with Global Hotel Catalog...');
+    await loadGlobalHotelCatalog();
     loadSavedCredentials();
     setupDefaultDates();
     renderAgencyChips();
     renderAccountabilityBanner();
     bindEvents();
     renderResults();
-    logDebug('✅ Supplier Accountability & Verified Session Engine initialized.');
+    logDebug(`✅ Supplier Accountability & Verified Session Engine initialized (${state.hotels.length} verified properties ready).`);
   }
 
-  // Pre-populates state with full quotes for dictionary hotels
-  function populateInitialHotelsFromDictionary() {
-    const generatedHotels = GLOBAL_HOTEL_DICTIONARY.map((dictHotel, hIdx) => {
+  // Asynchronously loads the 300+ hotel catalog from hotels.json with automatic fallback
+  async function loadGlobalHotelCatalog() {
+    let catalog = null;
+    try {
+      const res = await fetch('./hotels.json');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          catalog = data;
+          logDebug(`🌐 Loaded ${catalog.length} verified global hotels from external hotels.json`, 'pass');
+        }
+      }
+    } catch (e) {
+      logDebug(`Direct fetch of hotels.json restricted (${e.message}). Using bundled catalog fallback.`, 'info');
+    }
+
+    if (!catalog || catalog.length === 0) {
+      if (typeof GLOBAL_HOTEL_CATALOG_FALLBACK !== 'undefined' && Array.isArray(GLOBAL_HOTEL_CATALOG_FALLBACK)) {
+        catalog = GLOBAL_HOTEL_CATALOG_FALLBACK;
+        logDebug(`📦 Loaded ${catalog.length} global hotels from bundled catalog fallback.`, 'pass');
+      } else if (typeof INITIAL_HOTELS !== 'undefined' && Array.isArray(INITIAL_HOTELS)) {
+        catalog = INITIAL_HOTELS;
+      } else {
+        catalog = [];
+      }
+    }
+
+    GLOBAL_HOTEL_CATALOG = catalog;
+    buildDestinationsIndex(catalog);
+    populateHotelsFromCatalog(catalog);
+  }
+
+  function buildDestinationsIndex(catalog) {
+    const map = new Map();
+    (catalog || []).forEach(h => {
+      const city = h.city || (h.loc ? h.loc.split(',')[0].trim() : (h.location ? h.location.split(',')[0].trim() : ''));
+      const country = h.country || (h.loc && h.loc.includes(',') ? h.loc.split(',')[1].trim() : (h.location && h.location.includes(',') ? h.location.split(',')[1].trim() : ''));
+      const locKey = h.loc || h.location || `${city}, ${country}`;
+      if (locKey && !map.has(locKey)) {
+        map.set(locKey, {
+          name: locKey,
+          city: city,
+          country: country,
+          count: 0
+        });
+      }
+      if (locKey && map.has(locKey)) {
+        map.get(locKey).count++;
+      }
+    });
+
+    GLOBAL_DESTINATIONS = Array.from(map.values()).sort((a, b) => b.count - a.count);
+    state.destinations = GLOBAL_DESTINATIONS;
+  }
+
+  // Pre-populates state with full quotes for catalog hotels
+  function populateHotelsFromCatalog(catalog) {
+    const generatedHotels = catalog.map((dictHotel, hIdx) => {
       const existing = INITIAL_HOTELS.find(h => h.name.toLowerCase() === dictHotel.name.toLowerCase());
       if (existing) return existing;
 
@@ -830,12 +825,14 @@
       });
 
       return {
-        id: `h_dict_${hIdx}`,
+        id: dictHotel.id || `h_cat_${hIdx}`,
         name: dictHotel.name,
-        location: dictHotel.loc,
-        stars: dictHotel.stars,
+        city: dictHotel.city || '',
+        country: dictHotel.country || '',
+        location: dictHotel.loc || dictHotel.location || `${dictHotel.city}, ${dictHotel.country}`,
+        stars: dictHotel.stars || 4,
         image: dictHotel.image,
-        amenities: ['Verified Hotel', 'B2B Wholesale Parity', 'Free Wi-Fi', 'Instant Confirmation'],
+        amenities: dictHotel.amenities || ['Verified Hotel', 'B2B Wholesale Parity', 'Free Wi-Fi', 'Instant Confirmation'],
         rooms: rooms
       };
     });
@@ -1459,7 +1456,7 @@
     }
   }
 
-  // Strict Verified Autocomplete: Only matches real hotels in the dictionary
+  // Categorized Verified Autocomplete: Matches both Global Destinations & Specific Properties
   function handleAutocomplete(query) {
     if (!query || query.length < 1) {
       if (DOM.hotelAutocompleteList) DOM.hotelAutocompleteList.classList.add('hidden');
@@ -1469,17 +1466,23 @@
     const qLower = query.toLowerCase().trim();
     const queryTokens = qLower.split(/\s+/);
 
-    // Filter verified hotels in the dictionary
-    let matches = GLOBAL_HOTEL_DICTIONARY.filter(h => {
-      const fullText = (h.name + ' ' + h.loc).toLowerCase();
-      return queryTokens.every(token => fullText.includes(token));
-    });
+    // 1. Destination Matching (e.g., "Paris", "Rome", "Tokyo", "London", "Tel Aviv")
+    const matchingDestinations = (GLOBAL_DESTINATIONS || []).filter(d => {
+      const full = `${d.name} ${d.city} ${d.country}`.toLowerCase();
+      return queryTokens.every(tok => full.includes(tok));
+    }).slice(0, 4);
 
-    if (matches.length === 0) {
+    // 2. Specific Hotel Matching
+    let matchingHotels = (GLOBAL_HOTEL_CATALOG || []).filter(h => {
+      const fullText = `${h.name} ${h.loc || h.location || ''} ${h.city || ''}`.toLowerCase();
+      return queryTokens.every(token => fullText.includes(token));
+    }).slice(0, 6);
+
+    if (matchingDestinations.length === 0 && matchingHotels.length === 0) {
       if (DOM.hotelAutocompleteList) {
         DOM.hotelAutocompleteList.innerHTML = `
           <div style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-            ✕ No verified hotels match "<strong>${query}</strong>"
+            ✕ No verified destinations or hotels match "<strong>${query}</strong>"
           </div>
         `;
         DOM.hotelAutocompleteList.classList.remove('hidden');
@@ -1487,14 +1490,27 @@
       return;
     }
 
-    matches = matches.slice(0, 8);
+    let html = '';
 
-    let html = matches.map(h => `
-      <div class="autocomplete-item" data-name="${h.name}">
-        <span class="autocomplete-hotel">🏨 ${h.name} <small style="color:#fbbf24; font-size:0.75rem;">★ ${h.stars}.0</small></span>
-        <span class="autocomplete-loc">${h.loc} • Compare 9 Suppliers</span>
-      </div>
-    `).join('');
+    if (matchingDestinations.length > 0) {
+      html += `<div class="autocomplete-section-title">📍 Destinations (${matchingDestinations.length})</div>`;
+      html += matchingDestinations.map(d => `
+        <div class="autocomplete-item destination-item" data-type="destination" data-name="${d.name}" data-city="${d.city}">
+          <span class="autocomplete-hotel">📍 ${d.name} <span class="dest-count-badge">${d.count} hotels</span></span>
+          <span class="autocomplete-loc">Compare 9 B2B suppliers across all verified ${d.city} properties</span>
+        </div>
+      `).join('');
+    }
+
+    if (matchingHotels.length > 0) {
+      html += `<div class="autocomplete-section-title">🏨 Specific Hotels (${matchingHotels.length})</div>`;
+      html += matchingHotels.map(h => `
+        <div class="autocomplete-item" data-type="hotel" data-name="${h.name}">
+          <span class="autocomplete-hotel">🏨 ${h.name} <small style="color:#fbbf24; font-size:0.75rem;">★ ${h.stars}.0</small></span>
+          <span class="autocomplete-loc">${h.loc || h.location} • Compare 9 Suppliers</span>
+        </div>
+      `).join('');
+    }
 
     if (DOM.hotelAutocompleteList) {
       DOM.hotelAutocompleteList.innerHTML = html;
@@ -1502,11 +1518,13 @@
 
       DOM.hotelAutocompleteList.querySelectorAll('.autocomplete-item').forEach(item => {
         item.addEventListener('click', () => {
-          const hotelName = item.getAttribute('data-name');
-          if (DOM.hotelSearchInput) DOM.hotelSearchInput.value = hotelName;
-          state.filters.hotelName = hotelName;
+          const selectedName = item.getAttribute('data-name');
+          const itemType = item.getAttribute('data-type');
+          if (DOM.hotelSearchInput) DOM.hotelSearchInput.value = selectedName;
+          state.filters.hotelName = selectedName;
+          state.visibleLimit = 24;
           DOM.hotelAutocompleteList.classList.add('hidden');
-          logDebug(`Autocomplete selected: "${hotelName}"`);
+          logDebug(`Autocomplete selected: [${itemType.toUpperCase()}] "${selectedName}"`);
           simulateLiveAggregatorFetch();
         });
       });
@@ -1633,7 +1651,10 @@
       return;
     }
 
-    const cardsHTML = hotels.map(hotel => {
+    const visibleHotels = hotels.slice(0, state.visibleLimit);
+    const hasMore = hotels.length > state.visibleLimit;
+
+    let cardsHTML = visibleHotels.map(hotel => {
       const roomsToDisplay = hotel.rooms.filter(r => state.filters.roomType === 'ALL' || r.type === state.filters.roomType);
       
       if (roomsToDisplay.length === 0) {
@@ -1679,7 +1700,37 @@
       `;
     }).join('');
 
+    if (hasMore) {
+      cardsHTML += `
+        <div class="load-more-container">
+          <button id="btnLoadMoreCards" class="load-more-btn">
+            Load More Hotels (${hotels.length - state.visibleLimit} remaining)
+          </button>
+          <div class="load-more-meta">
+            Showing ${state.visibleLimit} of ${hotels.length} verified properties
+          </div>
+        </div>
+      `;
+    } else if (hotels.length > 24) {
+      cardsHTML += `
+        <div class="load-more-container">
+          <div class="load-more-meta" style="color: var(--emerald-text); font-weight: 600;">
+            ✓ Showing all ${hotels.length} verified properties
+          </div>
+        </div>
+      `;
+    }
+
     DOM.resultsContainer.innerHTML = cardsHTML;
+
+    const btnLoadMore = document.getElementById('btnLoadMoreCards');
+    if (btnLoadMore) {
+      btnLoadMore.addEventListener('click', () => {
+        state.visibleLimit += 24;
+        renderResults();
+      });
+    }
+
     bindBookingButtons();
     bindJsonInspectorButtons();
     bindConfigureAgencyButtons();
@@ -1974,7 +2025,10 @@
     }
 
     let rowsHTML = '';
-    hotels.forEach(hotel => {
+    const visibleHotels = hotels.slice(0, state.visibleLimit);
+    const hasMore = hotels.length > state.visibleLimit;
+
+    visibleHotels.forEach(hotel => {
       hotel.rooms.forEach(room => {
         if (state.filters.roomType !== 'ALL' && room.type !== state.filters.roomType) return;
 
@@ -2040,6 +2094,28 @@
       });
     });
 
+    let loadMoreHTML = '';
+    if (hasMore) {
+      loadMoreHTML = `
+        <div class="load-more-container">
+          <button id="btnLoadMoreTable" class="load-more-btn">
+            Load More Properties (${hotels.length - state.visibleLimit} remaining)
+          </button>
+          <div class="load-more-meta">
+            Showing ${state.visibleLimit} of ${hotels.length} verified properties
+          </div>
+        </div>
+      `;
+    } else if (hotels.length > 24) {
+      loadMoreHTML = `
+        <div class="load-more-container">
+          <div class="load-more-meta" style="color: var(--emerald-text); font-weight: 600;">
+            ✓ Showing all ${hotels.length} verified properties
+          </div>
+        </div>
+      `;
+    }
+
     DOM.resultsContainer.innerHTML = `
       <div class="table-matrix-wrapper">
         <table class="matrix-table">
@@ -2062,7 +2138,16 @@
           </tbody>
         </table>
       </div>
+      ${loadMoreHTML}
     `;
+
+    const btnLoadMoreTable = document.getElementById('btnLoadMoreTable');
+    if (btnLoadMoreTable) {
+      btnLoadMoreTable.addEventListener('click', () => {
+        state.visibleLimit += 24;
+        renderResults();
+      });
+    }
 
     bindBookingButtons();
   }

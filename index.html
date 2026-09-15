@@ -85,28 +85,35 @@
             <div class="search-field hotel-field">
               <label for="hotelSearchInput">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"></path>
-                  <polyline points="1 21 23 21"></polyline>
-                  <path d="M9 7h1"></path><path d="M9 11h1"></path><path d="M9 15h1"></path>
-                  <path d="M14 7h1"></path><path d="M14 11h1"></path><path d="M14 15h1"></path>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
-                Hotel Name (Global Search)
+                Destination or Hotel (Global Search)
               </label>
               <div class="input-with-autocomplete">
-                <input type="text" id="hotelSearchInput" placeholder="Type verified hotel name (e.g. The Norman, Dan Eilat, Hilton Paris)..." autocomplete="off">
+                <input type="text" id="hotelSearchInput" placeholder="Search destination (e.g. Paris, London, Tokyo, Rome) or hotel name..." autocomplete="off">
                 <div id="hotelAutocompleteList" class="autocomplete-dropdown hidden"></div>
               </div>
 
               <!-- Quick Autocomplete Test Tags -->
               <div style="margin-top: 8px; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                <span>Try verified hotels:</span>
-                <button type="button" class="link-btn" onclick="triggerSearch('The Norman')">The Norman</button>
+                <span>Popular destinations:</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('Tel Aviv')">Tel Aviv</button>
                 <span>•</span>
                 <button type="button" class="link-btn" onclick="triggerSearch('Paris')">Paris</button>
                 <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('London')">London</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('Rome')">Rome</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('New York')">New York</button>
+                <span>•</span>
                 <button type="button" class="link-btn" onclick="triggerSearch('Dubai')">Dubai</button>
                 <span>•</span>
-                <button type="button" class="link-btn" onclick="triggerSearch('Dan Eilat')">Dan Eilat</button>
+                <button type="button" class="link-btn" onclick="triggerSearch('Tokyo')">Tokyo</button>
+                <span>•</span>
+                <button type="button" class="link-btn" onclick="triggerSearch('The Norman')">The Norman</button>
               </div>
             </div>
 
@@ -795,8 +802,8 @@
   </div>
 
   <!-- Cache-busting script tags to force fresh load -->
-  <script src="data.js?v=20260811-v9"></script>
-  <script src="app.js?v=20260811-v9"></script>
+  <script src="data.js?v=20260811-v10"></script>
+  <script src="app.js?v=20260811-v10"></script>
   <script>
     function triggerSearch(text) {
       const input = document.getElementById('hotelSearchInput');
