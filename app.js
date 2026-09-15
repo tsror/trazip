@@ -16,6 +16,8 @@
     debugLogs: [],
     redirectTimer: null,
     supplierCredentials: {},
+    liveQuotes: {},
+    lastLiveApiPayloads: {},
     filters: {
       hotelName: '',
       roomType: 'ALL',
@@ -184,6 +186,15 @@
     DOM.btnCopyBookingRef = document.getElementById('btnCopyBookingRef');
     DOM.btnCloseBookingModal = document.getElementById('btnCloseBookingModal');
     DOM.btnCancelBookingModal = document.getElementById('btnCancelBookingModal');
+
+    // Live Query in Booking Modal
+    DOM.bookingModalCredsBox = document.getElementById('bookingModalCredsBox');
+    DOM.bookingModalCredsTitle = document.getElementById('bookingModalCredsTitle');
+    DOM.bookingModalCredsDesc = document.getElementById('bookingModalCredsDesc');
+    DOM.btnModalTriggerLiveSearch = document.getElementById('btnModalTriggerLiveSearch');
+    DOM.bookingModalLiveLogBox = document.getElementById('bookingModalLiveLogBox');
+    DOM.bookingModalLiveBadge = document.getElementById('bookingModalLiveBadge');
+    DOM.bookingModalLivePre = document.getElementById('bookingModalLivePre');
   }
 
   function getSupplierLogoHTML(agency, size = 'sm') {
@@ -207,6 +218,504 @@
   window.addEventListener('error', (e) => {
     logDebug(`JS Exception: ${e.message} at line ${e.lineno}:${e.colno}`, 'error');
   });
+
+  // Helper to read current input values from credentials modal form
+  function readCredsForAgencyFromForm(agencyId) {
+    switch (agencyId) {
+      case 'webbeds':
+        return {
+          client: document.getElementById('cfg_webbeds_client')?.value.trim() || '',
+          key: document.getElementById('cfg_webbeds_key')?.value.trim() || ''
+        };
+      case 'ratehawk':
+        return {
+          id: document.getElementById('cfg_ratehawk_id')?.value.trim() || '',
+          key: document.getElementById('cfg_ratehawk_key')?.value.trim() || ''
+        };
+      case 'tbo':
+        return {
+          user: document.getElementById('cfg_tbo_user')?.value.trim() || '',
+          pass: document.getElementById('cfg_tbo_pass')?.value.trim() || ''
+        };
+      case 'arbitrip':
+        return {
+          id: document.getElementById('cfg_arbitrip_id')?.value.trim() || '',
+          key: document.getElementById('cfg_arbitrip_key')?.value.trim() || ''
+        };
+      case 'goglobal':
+        return {
+          agency: document.getElementById('cfg_goglobal_agency')?.value.trim() || '',
+          pass: document.getElementById('cfg_goglobal_pass')?.value.trim() || ''
+        };
+      case 'expedia':
+        return {
+          key: document.getElementById('cfg_expedia_key')?.value.trim() || '',
+          secret: document.getElementById('cfg_expedia_secret')?.value.trim() || ''
+        };
+      case 'innstant':
+        return {
+          id: document.getElementById('cfg_innstant_id')?.value.trim() || '',
+          key: document.getElementById('cfg_innstant_key')?.value.trim() || ''
+        };
+      case 'tale':
+        return {
+          user: document.getElementById('cfg_tale_user')?.value.trim() || '',
+          pass: document.getElementById('cfg_tale_pass')?.value.trim() || ''
+        };
+      case 'ptc':
+        return {
+          user: document.getElementById('cfg_ptc_user')?.value.trim() || '',
+          pass: document.getElementById('cfg_ptc_pass')?.value.trim() || ''
+        };
+      default:
+        return {};
+    }
+  }
+
+  // ==========================================================================
+  // Supplier Live API Gateway & Authentication Engine
+  // ==========================================================================
+  const SupplierGateway = {
+    // HTTP fetch with automatic CORS proxy fallback for static GitHub Pages
+    async fetchWithCorsFallback(url, options = {}, timeoutMs = 8000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      const opts = { ...options, signal: controller.signal };
+
+      try {
+        logDebug(`🌐 Direct Request: ${options.method || 'GET'} ${url}`, 'info');
+        const res = await fetch(url, opts);
+        clearTimeout(timer);
+        return res;
+      } catch (err) {
+        clearTimeout(timer);
+        logDebug(`⚠️ Direct fetch CORS restricted (${err.message}). Attempting via secure CORS proxy bridge...`, 'warn');
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
+        const proxyController = new AbortController();
+        const proxyTimer = setTimeout(() => proxyController.abort(), timeoutMs);
+        try {
+          const proxyRes = await fetch(proxyUrl, { ...options, signal: proxyController.signal });
+          clearTimeout(proxyTimer);
+          return proxyRes;
+        } catch (proxyErr) {
+          clearTimeout(proxyTimer);
+          throw new Error(`Direct connection restricted (${err.message}) and CORS proxy failed (${proxyErr.message})`);
+        }
+      }
+    },
+
+    // Live Authentication & Ping Tester
+    async testAuth(agencyId, creds) {
+      const agency = AGENCIES.find(a => a.id === agencyId);
+      const agencyName = agency ? agency.name : agencyId;
+
+      console.group(`🧪 [TRAZIP LIVE AUTH TEST] ${agencyName}`);
+      console.log('Agency:', agencyName);
+      console.log('Credentials:', {
+        user_or_id: creds.user || creds.id || creds.client || creds.agency || '(none)',
+        key_or_pass: creds.key || creds.pass || creds.secret ? '***[PROVIDED]***' : '(none)'
+      });
+
+      logDebug(`🧪 Initiating live authentication test for ${agencyName}...`, 'info');
+
+      let endpoint = '';
+      let options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+
+      try {
+        switch (agencyId) {
+          case 'ratehawk': {
+            const keyId = creds.id || '';
+            const apiKey = creds.key || '';
+            if (!keyId || !apiKey) throw new Error('Please enter both Key ID and API Key / Password.');
+            endpoint = 'https://api.worldota.net/api/b2b/v3/hotel/info/';
+            const authHeader = 'Basic ' + btoa(`${keyId}:${apiKey}`);
+            options = {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id: 'the_norman_tel_aviv', language: 'en' })
+            };
+            break;
+          }
+
+          case 'tbo': {
+            const user = creds.user || '';
+            const pass = creds.pass || '';
+            if (!user || !pass) throw new Error('Please enter Username and Password.');
+            endpoint = 'https://api.tektravels.com/BookingEngineService_Hotel/hotelservice.svc/rest/Authenticate';
+            options = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ClientId: user,
+                UserName: user,
+                Password: pass,
+                EndUserIp: '127.0.0.1'
+              })
+            };
+            break;
+          }
+
+          case 'webbeds': {
+            const client = creds.client || '';
+            const key = creds.key || '';
+            if (!client && !key) throw new Error('Please enter Webbeds Client Code and API Key.');
+            endpoint = 'https://api.webbeds.com/v1/auth/verify';
+            options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`,
+                'X-Client-Id': client
+              },
+              body: JSON.stringify({ clientCode: client, check: true })
+            };
+            break;
+          }
+
+          case 'innstant': {
+            const partnerId = creds.id || '';
+            const key = creds.key || '';
+            if (!partnerId && !key) throw new Error('Please enter Partner ID and API Key.');
+            endpoint = 'https://api.innstant.travel/v1/auth/ping';
+            options = {
+              method: 'GET',
+              headers: {
+                'X-Partner-Id': partnerId,
+                'X-API-Key': key
+              }
+            };
+            break;
+          }
+
+          case 'arbitrip': {
+            const key = creds.key || '';
+            if (!key) throw new Error('Please enter Arbitrip API Secret Token.');
+            endpoint = 'https://api.arbitrip.com/v1/auth/verify';
+            options = {
+              method: 'GET',
+              headers: { 'Authorization': `Bearer ${key}` }
+            };
+            break;
+          }
+
+          case 'goglobal': {
+            const agencyCode = creds.agency || '';
+            const pass = creds.pass || '';
+            if (!agencyCode || !pass) throw new Error('Please enter Agency Code and XML Password.');
+            endpoint = 'https://api.goglobal.travel/v1/auth';
+            options = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ AgencyCode: agencyCode, Password: pass })
+            };
+            break;
+          }
+
+          case 'expedia': {
+            const key = creds.key || '';
+            const secret = creds.secret || '';
+            if (!key) throw new Error('Please enter Expedia TAAP Partner API Key.');
+            endpoint = 'https://api.ean.com/v3/properties/availability';
+            options = {
+              method: 'GET',
+              headers: { 'Authorization': `Rapid key=${key}` }
+            };
+            break;
+          }
+
+          case 'tale': {
+            const user = creds.user || '';
+            const pass = creds.pass || '';
+            if (!user || !pass) throw new Error('Please enter Tale Travel Username and Password.');
+            endpoint = 'https://www.taletravel.com/api/agent/auth';
+            options = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username: user, password: pass })
+            };
+            break;
+          }
+
+          case 'ptc': {
+            const user = creds.user || '';
+            const pass = creds.pass || '';
+            if (!user || !pass) throw new Error('Please enter PTC Travel User ID and Password.');
+            endpoint = 'https://www.ptc.co.il/api/auth/login';
+            options = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user, password: pass })
+            };
+            break;
+          }
+
+          default:
+            throw new Error(`Unknown agency: ${agencyId}`);
+        }
+
+        console.log('Endpoint URL:', endpoint);
+        console.log('Request Config:', options);
+
+        const res = await SupplierGateway.fetchWithCorsFallback(endpoint, options, 7000);
+        const text = await res.text();
+        let parsed;
+        try { parsed = JSON.parse(text); } catch { parsed = text; }
+
+        console.log('HTTP Status:', res.status, res.statusText);
+        console.log('Response Payload:', parsed);
+        console.groupEnd();
+
+        if (res.status >= 200 && res.status < 300) {
+          logDebug(`✓ [AUTH SUCCESS] ${agencyName} authenticated successfully! (HTTP ${res.status})`, 'pass');
+          return { success: true, status: res.status, data: parsed, message: `Connected (HTTP ${res.status})` };
+        } else if (res.status === 401 || res.status === 403) {
+          logDebug(`❌ [AUTH ERROR] ${agencyName} authentication rejected (HTTP ${res.status}): Invalid credentials.`, 'error');
+          return { success: false, status: res.status, error: `Auth Rejected (${res.status})`, data: parsed };
+        } else {
+          logDebug(`⚠️ [AUTH RESPONSE] ${agencyName} returned HTTP ${res.status}`, 'warn');
+          return { success: true, status: res.status, data: parsed, message: `HTTP ${res.status}` };
+        }
+      } catch (err) {
+        console.warn(`[TRAZIP LIVE AUTH ERROR] ${agencyName}:`, err);
+        console.groupEnd();
+        logDebug(`❌ [AUTH ERROR] ${agencyName}: ${err.message}`, 'error');
+        return { success: false, error: err.message };
+      }
+    },
+
+    // Search Real Live Hotel Rates
+    async searchRates(agencyId, hotel, filters, creds) {
+      const agency = AGENCIES.find(a => a.id === agencyId);
+      const agencyName = agency ? agency.name : agencyId;
+
+      console.group(`⚡ [TRAZIP LIVE API QUERY] ${agencyName} -> "${hotel.name}"`);
+      console.log('Hotel:', hotel.name, hotel.location);
+      console.log('Stay Dates:', `${filters.checkIn} to ${filters.checkOut} (${filters.nights} nights)`);
+      console.log('Guests:', `${filters.adults} Adults, ${filters.rooms} Room(s)`);
+
+      logDebug(`⚡ Querying live rates from ${agencyName} for "${hotel.name}"...`, 'info');
+
+      const refCode = `${agencyId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}-LIVE`;
+
+      try {
+        let endpoint = '';
+        let options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+        let reqPayload = {};
+
+        switch (agencyId) {
+          case 'ratehawk': {
+            endpoint = 'https://api.worldota.net/api/b2b/v3/search/serp/hotels/';
+            const auth = 'Basic ' + btoa(`${creds.id || ''}:${creds.key || ''}`);
+            reqPayload = {
+              checkin: filters.checkIn,
+              checkout: filters.checkOut,
+              guests: [{ adults: Number(filters.adults), children: [] }],
+              id: hotel.name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+              currency: state.selectedCurrency || 'USD',
+              residency: 'il',
+              language: 'en'
+            };
+            options = {
+              method: 'POST',
+              headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+              body: JSON.stringify(reqPayload)
+            };
+            break;
+          }
+
+          case 'tbo': {
+            endpoint = 'https://api.tektravels.com/BookingEngineService_Hotel/hotelservice.svc/rest/GetHotelResult';
+            reqPayload = {
+              CheckInDate: filters.checkIn,
+              NoOfNights: filters.nights,
+              CountryCode: 'IL',
+              CityName: hotel.location,
+              NoOfRooms: filters.rooms,
+              GuestNationality: 'IL',
+              RoomGuests: [{ NoOfAdults: Number(filters.adults), NoOfChild: 0 }]
+            };
+            options = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reqPayload)
+            };
+            break;
+          }
+
+          case 'webbeds': {
+            endpoint = 'https://api.webbeds.com/v1/hotels/availability';
+            reqPayload = {
+              hotel: hotel.name,
+              checkIn: filters.checkIn,
+              checkOut: filters.checkOut,
+              adults: Number(filters.adults),
+              rooms: Number(filters.rooms)
+            };
+            options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${creds.key || ''}`,
+                'X-Client-Id': creds.client || ''
+              },
+              body: JSON.stringify(reqPayload)
+            };
+            break;
+          }
+
+          case 'innstant': {
+            endpoint = 'https://api.innstant.travel/v1/hotels/availability';
+            reqPayload = {
+              hotel_name: hotel.name,
+              check_in: filters.checkIn,
+              check_out: filters.checkOut,
+              adults: Number(filters.adults)
+            };
+            options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Partner-Id': creds.id || '',
+                'X-API-Key': creds.key || ''
+              },
+              body: JSON.stringify(reqPayload)
+            };
+            break;
+          }
+
+          default: {
+            endpoint = `${agency.portalUrl}/api/v1/rates/search`;
+            reqPayload = {
+              hotel: hotel.name,
+              destination: hotel.location,
+              checkIn: filters.checkIn,
+              checkOut: filters.checkOut,
+              adults: filters.adults
+            };
+            options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${creds.key || creds.pass || ''}`
+              },
+              body: JSON.stringify(reqPayload)
+            };
+          }
+        }
+
+        console.log('Sending request to endpoint:', endpoint);
+        console.log('Request Payload:', reqPayload);
+
+        const startTime = Date.now();
+        const res = await SupplierGateway.fetchWithCorsFallback(endpoint, options, 7000);
+        const elapsed = Date.now() - startTime;
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch { json = text; }
+
+        console.log(`HTTP ${res.status} Response received in ${elapsed}ms:`, json);
+        console.groupEnd();
+
+        // Cache payload for inspector
+        state.lastLiveApiPayloads[agencyId] = {
+          aggregator_source: "Trazip B2B RateCompare Engine (LIVE SESSION)",
+          supplier_endpoint: agencyName,
+          endpoint_url: endpoint,
+          provider_ref_code: refCode,
+          request_params: reqPayload,
+          supplier_response: json,
+          http_status: res.status,
+          latency_ms: elapsed,
+          timestamp: new Date().toISOString()
+        };
+
+        logDebug(`✓ [LIVE RESPONSE] ${agencyName}: HTTP ${res.status} in ${elapsed}ms`, 'pass');
+
+        let liveNightlyILS = null;
+        if (json && typeof json === 'object') {
+          if (json.rates && json.rates[0] && json.rates[0].price) {
+            liveNightlyILS = Math.round(Number(json.rates[0].price));
+          } else if (json.data && json.data.hotels && json.data.hotels[0] && json.data.hotels[0].rates) {
+            const r = json.data.hotels[0].rates[0];
+            const amt = r.payment_options?.payment_types?.[0]?.amount || r.daily_prices?.[0];
+            if (amt) liveNightlyILS = Math.round(Number(amt));
+          } else if (json.price || json.rate || json.total) {
+            liveNightlyILS = Math.round(Number(json.price || json.rate || json.total));
+          }
+        }
+
+        return {
+          success: true,
+          live: true,
+          status: res.status,
+          latencyMs: elapsed,
+          refCode,
+          priceILS: liveNightlyILS,
+          rawResponse: json,
+          rawRequest: reqPayload
+        };
+      } catch (err) {
+        console.warn(`[TRAZIP LIVE SEARCH FAILED] ${agencyName}:`, err);
+        console.groupEnd();
+        logDebug(`⚠️ [LIVE SEARCH FAILED] ${agencyName}: ${err.message}`, 'warn');
+
+        state.lastLiveApiPayloads[agencyId] = {
+          aggregator_source: "Trazip B2B RateCompare Engine (ATTEMPTED LIVE SESSION)",
+          supplier_endpoint: agencyName,
+          provider_ref_code: refCode,
+          request_params: { hotel: hotel.name, dates: `${filters.checkIn} - ${filters.checkOut}` },
+          error: err.message,
+          http_status: 0,
+          timestamp: new Date().toISOString()
+        };
+
+        return {
+          success: false,
+          live: false,
+          error: err.message,
+          refCode
+        };
+      }
+    },
+
+    // Construct deep link URL with search parameters for supplier portal
+    getDeepSearchUrl(agencyId, hotel, filters, creds) {
+      const hName = encodeURIComponent(hotel.name || 'hotel');
+      const loc = encodeURIComponent(hotel.location || '');
+      const inDate = filters.checkIn;
+      const outDate = filters.checkOut;
+      const adults = filters.adults;
+      const rooms = filters.rooms;
+
+      switch (agencyId) {
+        case 'ratehawk': {
+          const slug = (hotel.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          return `https://www.ratehawk.com/hotel/${slug}/?checkin=${inDate}&checkout=${outDate}&guests=${adults}`;
+        }
+        case 'webbeds':
+          return `https://www.webbeds.com/search?hotel=${hName}&destination=${loc}&checkin=${inDate}&checkout=${outDate}&adults=${adults}`;
+        case 'tbo':
+          return `https://www.tboholidays.com/HotelListing.aspx?CityName=${loc}&CheckInDate=${inDate}&CheckOutDate=${outDate}`;
+        case 'innstant':
+          return `https://www.innstant.travel/search?hotel=${hName}&checkin=${inDate}&checkout=${outDate}&rooms=${rooms}&adults=${adults}`;
+        case 'arbitrip':
+          return `https://www.arbitrip.com/hotels/search?destination=${hName}&checkin=${inDate}&checkout=${outDate}`;
+        case 'goglobal':
+          return `https://www.goglobal.travel/search?dest=${loc}&hotel=${hName}`;
+        case 'expedia':
+          return `https://www.expediapartnersolutions.com/products/expedia-taap?hotel=${hName}&checkin=${inDate}&checkout=${outDate}`;
+        case 'tale':
+          return `https://www.taletravel.com/search?q=${hName}&in=${inDate}&out=${outDate}`;
+        case 'ptc':
+          return `https://www.ptc.co.il/search?hotel=${hName}&dates=${inDate}_${outDate}`;
+        default:
+          return AGENCIES.find(a => a.id === agencyId)?.portalUrl || 'https://www.trazip.com';
+      }
+    }
+  };
 
   function init() {
     cacheDOM();
@@ -286,12 +795,14 @@
       const badge = document.getElementById(`badge_${a.id}`);
       if (badge) {
         const creds = state.supplierCredentials[a.id];
-        if (creds && (creds.key || creds.pass)) {
+        if (creds && (creds.key || creds.pass || creds.client || creds.user || creds.id)) {
           badge.textContent = '🟢 Configured';
           badge.classList.add('is-live');
+          badge.style.color = '';
         } else {
           badge.textContent = 'Demo Mode';
           badge.classList.remove('is-live');
+          badge.style.color = '';
         }
       }
     });
@@ -375,6 +886,50 @@
     return `${curr.symbol}${Math.round(converted).toLocaleString()}`;
   }
 
+  function bindTestAuthButtons() {
+    document.querySelectorAll('.btn-test-auth').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const agencyId = btn.getAttribute('data-agency');
+        const badge = document.getElementById(`badge_${agencyId}`);
+        const currentCreds = readCredsForAgencyFromForm(agencyId);
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Testing...';
+
+        if (badge) {
+          badge.textContent = '⏳ Connecting...';
+          badge.className = 'api-badge';
+          badge.style.color = '#fbbf24';
+        }
+
+        // Auto-open debug log box so user can view live trace
+        if (DOM.debugConsoleBox) DOM.debugConsoleBox.classList.remove('hidden');
+
+        const testResult = await SupplierGateway.testAuth(agencyId, currentCreds);
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+
+        if (badge) {
+          if (testResult.success) {
+            badge.textContent = `🟢 Auth OK (${testResult.status || 200})`;
+            badge.className = 'api-badge is-live';
+            badge.style.color = '#34d399';
+          } else {
+            const errStr = testResult.error || 'Failed';
+            badge.textContent = `❌ ${errStr.length > 15 ? errStr.substring(0, 15) + '..' : errStr}`;
+            badge.className = 'api-badge';
+            badge.style.color = '#f43f5e';
+          }
+        }
+      });
+    });
+  }
+
   function bindEvents() {
     if (DOM.btnOpenApiSettings) DOM.btnOpenApiSettings.addEventListener('click', () => DOM.apiSettingsModal.classList.remove('hidden'));
     if (DOM.btnCloseApiSettingsModal) DOM.btnCloseApiSettingsModal.addEventListener('click', () => DOM.apiSettingsModal.classList.add('hidden'));
@@ -400,17 +955,22 @@
         updateApiBadges();
         DOM.apiSettingsModal.classList.add('hidden');
         logDebug('💾 Saved supplier API keys and portal login credentials securely.');
+        simulateLiveAggregatorFetch();
       });
     }
+
+    bindTestAuthButtons();
 
     if (DOM.btnClearAllApiSettings) {
       DOM.btnClearAllApiSettings.addEventListener('click', () => {
         if (confirm('Clear all saved supplier credentials from local vault?')) {
           state.supplierCredentials = {};
+          state.liveQuotes = {};
           localStorage.removeItem(STORAGE_KEY);
           DOM.apiSettingsForm.reset();
           updateApiBadges();
           logDebug('Cleared all saved credentials.');
+          renderResults();
         }
       });
     }
@@ -629,15 +1189,16 @@
     const activeList = AGENCIES.filter(a => state.activeAgencies.has(a.id));
     
     DOM.supplierApiStatusGrid.innerHTML = activeList.map(a => {
-      const isConfigured = state.supplierCredentials[a.id] && (state.supplierCredentials[a.id].key || state.supplierCredentials[a.id].pass);
+      const creds = state.supplierCredentials[a.id];
+      const isConfigured = creds && (creds.key || creds.pass || creds.client || creds.user || creds.id);
       return `
         <div class="api-status-item">
           <span class="api-status-name">
             ${getSupplierLogoHTML(a, 'sm')}
             <span>${a.name}</span>
-            ${isConfigured ? '🟢' : ''}
+            ${isConfigured ? '<span class="live-api-tag" style="font-size: 0.6rem; padding: 1px 4px;">Live</span>' : ''}
           </span>
-          <span id="api_stat_${a.id}" class="api-status-latency">⏳ Fetching...</span>
+          <span id="api_stat_${a.id}" class="api-status-latency">⏳ Connecting...</span>
         </div>
       `;
     }).join('');
@@ -645,26 +1206,72 @@
     let completedCount = 0;
     const total = activeList.length || 1;
 
+    // Pick target hotel to query for real rates
+    const qLower = (state.filters.hotelName || '').toLowerCase().trim();
+    const targetHotel = state.hotels.find(h => {
+      if (!qLower) return true;
+      return h.name.toLowerCase().includes(qLower) || h.location.toLowerCase().includes(qLower);
+    }) || state.hotels[0];
+
     activeList.forEach((agency) => {
-      const delay = 150 + Math.random() * 350;
-      setTimeout(() => {
-        completedCount++;
-        const pct = Math.round((completedCount / total) * 100);
-        DOM.aggregatorProgressBar.style.width = pct + '%';
-        DOM.aggregatorPercentText.textContent = pct + '%';
+      const creds = state.supplierCredentials[agency.id];
+      const isConfigured = creds && (creds.key || creds.pass || creds.client || creds.user || creds.id);
 
-        const statusEl = document.getElementById(`api_stat_${agency.id}`);
-        if (statusEl) {
-          statusEl.textContent = `200 OK • ${Math.round(delay)}ms`;
-        }
+      if (isConfigured && targetHotel) {
+        logDebug(`⚡ [AGGREGATOR] Querying real B2B rates from ${agency.name}...`, 'info');
+        SupplierGateway.searchRates(agency.id, targetHotel, state.filters, creds).then(result => {
+          completedCount++;
+          const pct = Math.round((completedCount / total) * 100);
+          DOM.aggregatorProgressBar.style.width = pct + '%';
+          DOM.aggregatorPercentText.textContent = pct + '%';
 
-        if (completedCount === total) {
-          setTimeout(() => {
-            DOM.aggregatorProgressBox.classList.add('hidden');
-            renderResults();
-          }, 300);
-        }
-      }, delay);
+          const statusEl = document.getElementById(`api_stat_${agency.id}`);
+          if (statusEl) {
+            if (result.success) {
+              statusEl.textContent = `200 OK • ${result.latencyMs}ms (Live)`;
+              statusEl.style.color = '#34d399';
+              if (result.priceILS) {
+                state.liveQuotes[`${targetHotel.id}_${agency.id}`] = {
+                  priceILS: result.priceILS,
+                  isLive: true,
+                  refCode: result.refCode
+                };
+              }
+            } else {
+              const errSnippet = result.error ? (result.error.length > 18 ? result.error.substring(0, 18) + '..' : result.error) : 'Failed';
+              statusEl.textContent = `Live Err: ${errSnippet}`;
+              statusEl.style.color = '#fbbf24';
+            }
+          }
+
+          if (completedCount === total) {
+            setTimeout(() => {
+              DOM.aggregatorProgressBox.classList.add('hidden');
+              renderResults();
+            }, 300);
+          }
+        });
+      } else {
+        const delay = 120 + Math.random() * 280;
+        setTimeout(() => {
+          completedCount++;
+          const pct = Math.round((completedCount / total) * 100);
+          DOM.aggregatorProgressBar.style.width = pct + '%';
+          DOM.aggregatorPercentText.textContent = pct + '%';
+
+          const statusEl = document.getElementById(`api_stat_${agency.id}`);
+          if (statusEl) {
+            statusEl.textContent = `Demo 200 • ${Math.round(delay)}ms`;
+          }
+
+          if (completedCount === total) {
+            setTimeout(() => {
+              DOM.aggregatorProgressBox.classList.add('hidden');
+              renderResults();
+            }, 300);
+          }
+        }, delay);
+      }
     });
   }
 
@@ -894,7 +1501,15 @@
     const quotesList = [];
     AGENCIES.forEach(agency => {
       if (state.activeAgencies.has(agency.id) && room.quotes[agency.id]) {
-        const q = room.quotes[agency.id];
+        let q = { ...room.quotes[agency.id] };
+
+        // Check if there is a live rate override for this hotel & agency
+        const liveKey = `${hotel.id}_${agency.id}`;
+        if (state.liveQuotes[liveKey]) {
+          q.priceILS = state.liveQuotes[liveKey].priceILS;
+          q.isLive = true;
+          q.refCode = state.liveQuotes[liveKey].refCode;
+        }
 
         // Apply Breakfast Filter
         if (state.filters.breakfastFilter === 'BREAKFAST_ONLY' && !q.breakfast) return;
@@ -947,7 +1562,7 @@
         <div class="agency-quotes-grid">
           ${quotesList.map(item => {
             const isLowest = Math.abs(item.nightlyILS - lowestPrice) < 1;
-            const refCode = `${item.agency.id.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}-X`;
+            const refCode = item.quote.refCode || `${item.agency.id.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}-X`;
 
             return `
               <div class="agency-quote-card ${isLowest ? 'is-lowest' : ''}">
@@ -957,8 +1572,9 @@
                   <span class="agency-badge-title" style="color: ${item.agency.color};">
                     ${getSupplierLogoHTML(item.agency, 'sm')}
                     <span>${item.agency.name}</span>
+                    ${item.quote.isLive ? '<span class="live-api-tag">🟢 LIVE API</span>' : ''}
                   </span>
-                  <button class="btn-inspect-api" data-agency="${item.agency.fullTitle}" data-ref="${refCode}" data-hotel="${hotel.name}" data-room="${room.type}" data-price="${item.nightlyILS}" data-cancel="${item.quote.cancellation}" data-breakfast="${item.quote.breakfast}">
+                  <button class="btn-inspect-api" data-agency-id="${item.agency.id}" data-agency="${item.agency.fullTitle}" data-ref="${refCode}" data-hotel="${hotel.name}" data-room="${room.type}" data-price="${item.nightlyILS}" data-cancel="${item.quote.cancellation}" data-breakfast="${item.quote.breakfast}">
                     🔍 Inspect API
                   </button>
                 </div>
@@ -1006,6 +1622,7 @@
     document.querySelectorAll('.btn-inspect-api').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        const agencyId = btn.getAttribute('data-agency-id');
         const agencyName = btn.getAttribute('data-agency');
         const refCode = btn.getAttribute('data-ref');
         const hotel = btn.getAttribute('data-hotel');
@@ -1014,39 +1631,45 @@
         const cancel = btn.getAttribute('data-cancel');
         const breakfast = btn.getAttribute('data-breakfast') === 'true';
 
-        const jsonPayload = {
-          aggregator_source: "Trazip B2B RateCompare Engine v2.4",
-          supplier_endpoint: agencyName,
-          provider_ref_code: refCode,
-          request_params: {
-            hotel_name: hotel,
-            check_in: state.filters.checkIn,
-            check_out: state.filters.checkOut,
-            nights: state.filters.nights,
-            adults: state.filters.adults,
-            children: state.filters.kids,
-            rooms_count: state.filters.rooms
-          },
-          supplier_response: {
-            http_status: 200,
-            status_message: "OK_AVAILABLE",
-            room_type_name: room,
-            currency: "ILS",
-            net_rate_ils: Math.round(price * 0.85),
-            taxes_and_fees_ils: Math.round(price * 0.15),
-            total_nightly_ils: Math.round(price),
-            board_basis: breakfast ? "BB (Breakfast Included)" : "RO (Room Only)",
-            cancellation_terms: {
-              is_refundable: cancel.includes('Free'),
-              policy_text: cancel,
-              penalty_percentage: cancel.includes('Free') ? 0 : 100
+        let jsonPayload;
+        if (agencyId && state.lastLiveApiPayloads[agencyId]) {
+          jsonPayload = state.lastLiveApiPayloads[agencyId];
+        } else {
+          jsonPayload = {
+            aggregator_source: "Trazip B2B RateCompare Engine v2.4 (Simulated Demo Quote)",
+            note: "To view real supplier wire payloads, configure trade keys in '⚙️ Supplier API & Logins'",
+            supplier_endpoint: agencyName,
+            provider_ref_code: refCode,
+            request_params: {
+              hotel_name: hotel,
+              check_in: state.filters.checkIn,
+              check_out: state.filters.checkOut,
+              nights: state.filters.nights,
+              adults: state.filters.adults,
+              children: state.filters.kids,
+              rooms_count: state.filters.rooms
             },
-            instant_confirmation: true,
-            pay_type: "MERCHANT_PREPAY"
-          }
-        };
+            supplier_response: {
+              http_status: 200,
+              status_message: "OK_AVAILABLE",
+              room_type_name: room,
+              currency: "ILS",
+              net_rate_ils: Math.round(price * 0.85),
+              taxes_and_fees_ils: Math.round(price * 0.15),
+              total_nightly_ils: Math.round(price),
+              board_basis: breakfast ? "BB (Breakfast Included)" : "RO (Room Only)",
+              cancellation_terms: {
+                is_refundable: cancel.includes('Free'),
+                policy_text: cancel,
+                penalty_percentage: cancel.includes('Free') ? 0 : 100
+              },
+              instant_confirmation: true,
+              pay_type: "MERCHANT_PREPAY"
+            }
+          };
+        }
 
-        if (DOM.jsonModalSupplierName) DOM.jsonModalSupplierName.textContent = agencyName + " - Live API Payload";
+        if (DOM.jsonModalSupplierName) DOM.jsonModalSupplierName.textContent = agencyName + " - " + (agencyId && state.lastLiveApiPayloads[agencyId] ? "Live API Wire Payload" : "Demo API Payload");
         if (DOM.jsonModalRefCode) DOM.jsonModalRefCode.textContent = "Provider Ref: " + refCode;
         if (DOM.jsonModalPreContent) DOM.jsonModalPreContent.textContent = JSON.stringify(jsonPayload, null, 2);
         if (DOM.jsonInspectorModal) DOM.jsonInspectorModal.classList.remove('hidden');
@@ -1182,7 +1805,6 @@
         const agencyId = btn.getAttribute('data-agency-id');
         const agency = AGENCIES.find(a => a.id === agencyId) || { name: 'Innstant', icon: '🚀', portalUrl: 'https://www.innstant.travel', logoUrl: 'https://www.google.com/s2/favicons?domain=innstant.travel&sz=128' };
         const agencyName = btn.getAttribute('data-agency-name') || agency.name;
-        const portalUrl = btn.getAttribute('data-portal-url') || agency.portalUrl;
         const hotel = btn.getAttribute('data-hotel') || 'Selected Hotel';
         const room = btn.getAttribute('data-room') || 'Standard Room';
         const bed = btn.getAttribute('data-bed') || '';
@@ -1190,7 +1812,14 @@
         const breakfast = btn.getAttribute('data-breakfast') === 'true';
         const ref = btn.getAttribute('data-ref') || `${agencyName.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}-X`;
 
-        logDebug(`🔗 Initiating booking handoff for ${agencyName} -> ${portalUrl} (Ref: ${ref})`);
+        const creds = state.supplierCredentials[agencyId] || {};
+        const isConfigured = !!(creds.key || creds.pass || creds.client || creds.user || creds.id);
+        const userDisplay = creds.user || creds.client || creds.id || (creds.key ? 'API Key Active' : 'Demo Account');
+
+        // Deep Search Portal URL with pre-filled hotel and dates
+        const deepSearchUrl = SupplierGateway.getDeepSearchUrl(agencyId, { name: hotel, location: state.filters.hotelName }, state.filters, creds);
+
+        logDebug(`🔗 Initiating booking handoff for ${agencyName} -> ${deepSearchUrl} (Ref: ${ref})`);
 
         if (DOM.bookingModalAgencyIcon) {
           DOM.bookingModalAgencyIcon.innerHTML = getSupplierLogoHTML(agency, 'lg');
@@ -1203,37 +1832,99 @@
         if (DOM.bookingModalDates) DOM.bookingModalDates.textContent = `📅 ${state.filters.checkIn} → ${state.filters.checkOut} (${state.filters.nights} Nights)`;
         if (DOM.bookingModalGuests) DOM.bookingModalGuests.textContent = `👥 ${state.filters.adults} Adults · ${state.filters.rooms} Room${state.filters.rooms > 1 ? 's' : ''}`;
         if (DOM.bookingModalBoard) DOM.bookingModalBoard.textContent = breakfast ? '☕ Breakfast Included' : '🚫 Room Only';
-        if (DOM.bookingModalPortalUrl) DOM.bookingModalPortalUrl.textContent = portalUrl;
+        if (DOM.bookingModalPortalUrl) DOM.bookingModalPortalUrl.textContent = deepSearchUrl;
+
+        // Populate B2B Account status in modal
+        if (DOM.bookingModalCredsTitle) {
+          DOM.bookingModalCredsTitle.textContent = isConfigured ? `🔑 B2B Trade Session: ${userDisplay}` : '⚪ Demo Mode (No custom API credentials saved)';
+          DOM.bookingModalCredsTitle.style.color = isConfigured ? '#34d399' : '#fbbf24';
+        }
+        if (DOM.bookingModalCredsDesc) {
+          DOM.bookingModalCredsDesc.textContent = isConfigured ? 'Direct API session active. You can query live rates below.' : 'Open ⚙️ Supplier API & Logins in the top navbar to configure trade credentials.';
+        }
+
+        // Reset live response drawer inside modal
+        if (DOM.bookingModalLiveLogBox) DOM.bookingModalLiveLogBox.classList.add('hidden');
+        if (DOM.bookingModalLivePre) DOM.bookingModalLivePre.textContent = '';
+
+        // Wire "Query Real Live Rate Now" button inside modal
+        if (DOM.btnModalTriggerLiveSearch) {
+          DOM.btnModalTriggerLiveSearch.onclick = async () => {
+            DOM.btnModalTriggerLiveSearch.disabled = true;
+            DOM.btnModalTriggerLiveSearch.textContent = '⏳ Querying Live API...';
+            if (DOM.bookingModalLiveLogBox) DOM.bookingModalLiveLogBox.classList.remove('hidden');
+            if (DOM.bookingModalLiveBadge) DOM.bookingModalLiveBadge.textContent = 'Executing...';
+            if (DOM.bookingModalLivePre) DOM.bookingModalLivePre.textContent = `Connecting to ${agencyName} B2B Gateway...\nHotel: ${hotel}\nDates: ${state.filters.checkIn} to ${state.filters.checkOut}\nAdults: ${state.filters.adults}\nWaiting for response...`;
+
+            // Auto-open main debug box as well
+            if (DOM.debugConsoleBox) DOM.debugConsoleBox.classList.remove('hidden');
+
+            const currentHotelObj = state.hotels.find(h => h.name === hotel) || { name: hotel, location: 'Tel Aviv, Israel' };
+            const liveRes = await SupplierGateway.searchRates(agencyId, currentHotelObj, state.filters, creds);
+
+            DOM.btnModalTriggerLiveSearch.disabled = false;
+            DOM.btnModalTriggerLiveSearch.textContent = '⚡ Query Real Live Rate Now';
+
+            if (liveRes.success) {
+              if (DOM.bookingModalLiveBadge) {
+                DOM.bookingModalLiveBadge.textContent = `200 OK (${liveRes.latencyMs}ms)`;
+                DOM.bookingModalLiveBadge.style.color = '#34d399';
+              }
+              if (DOM.bookingModalLivePre) {
+                DOM.bookingModalLivePre.textContent = JSON.stringify({
+                  status: "LIVE_API_SUCCESS",
+                  supplier: agencyName,
+                  hotel: hotel,
+                  refCode: liveRes.refCode,
+                  liveRateNightlyILS: liveRes.priceILS,
+                  rawResponse: liveRes.rawResponse
+                }, null, 2);
+              }
+              if (liveRes.priceILS && DOM.bookingModalTotalRate) {
+                const total = liveRes.priceILS * state.filters.nights;
+                DOM.bookingModalTotalRate.textContent = formatMoney(total);
+                // Also cache for main view
+                state.liveQuotes[`${currentHotelObj.id}_${agencyId}`] = {
+                  priceILS: liveRes.priceILS,
+                  isLive: true,
+                  refCode: liveRes.refCode
+                };
+              }
+            } else {
+              if (DOM.bookingModalLiveBadge) {
+                DOM.bookingModalLiveBadge.textContent = `Error: ${liveRes.error || 'Failed'}`;
+                DOM.bookingModalLiveBadge.style.color = '#f43f5e';
+              }
+              if (DOM.bookingModalLivePre) {
+                DOM.bookingModalLivePre.textContent = JSON.stringify({
+                  status: "LIVE_API_ERROR",
+                  supplier: agencyName,
+                  error: liveRes.error,
+                  note: "Inspect browser Developer Tools (Console) or bottom Debug Console for full trace."
+                }, null, 2);
+              }
+            }
+          };
+        }
         
         if (DOM.btnProceedDirectLink) {
-          DOM.btnProceedDirectLink.setAttribute('href', portalUrl);
+          DOM.btnProceedDirectLink.setAttribute('href', deepSearchUrl);
           DOM.btnProceedDirectLink.setAttribute('target', '_blank');
         }
 
         if (DOM.bookingModal) DOM.bookingModal.classList.remove('hidden');
 
-        try {
-          const openedWindow = window.open(portalUrl, '_blank');
-          if (!openedWindow || openedWindow.closed || typeof openedWindow.closed === 'undefined') {
-            logDebug(`⚠️ Browser popup blocker active; click "Open Portal Now" button.`, 'warn');
-          } else {
-            logDebug(`✓ Opened portal window for ${agencyName} successfully.`, 'info');
-          }
-        } catch (err) {
-          logDebug(`window.open failed: ${err.message}`, 'warn');
-        }
-
         let secondsLeft = 3;
-        if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Redirecting to ${agencyName} portal in ${secondsLeft}s...`;
+        if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Ready to open ${agencyName} portal with search params...`;
         
         if (state.redirectTimer) clearInterval(state.redirectTimer);
         state.redirectTimer = setInterval(() => {
           secondsLeft--;
           if (secondsLeft > 0) {
-            if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Redirecting to ${agencyName} portal in ${secondsLeft}s...`;
+            if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Connecting in ${secondsLeft}s...`;
           } else {
             clearInterval(state.redirectTimer);
-            if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Connected! If the portal did not open, click the button below.`;
+            if (DOM.bookingCountdownText) DOM.bookingCountdownText.textContent = `Connected! Click "Open Portal Now" to launch search.`;
           }
         }, 1000);
       });

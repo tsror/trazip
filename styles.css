@@ -315,6 +315,57 @@ a {
   border-radius: var(--radius-sm);
 }
 
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  border-radius: 4px;
+}
+
+.btn-test-auth {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-test-auth:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+.btn-test-auth:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.live-api-tag {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: liveGlowPulse 2s infinite alternate;
+}
+
+@keyframes liveGlowPulse {
+  0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.2); }
+  100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+}
+
 /* Hero Section */
 .hero-section {
   position: relative;
